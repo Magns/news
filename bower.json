@@ -1,6 +1,6 @@
 {
   "name": "news",
-  "description": "News this day x years ago",
+  "description": "News this day 100 years ago",
   "main": "index.js",
   "authors": [
     "Magnus Nygaard"

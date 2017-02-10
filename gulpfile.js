@@ -32,13 +32,11 @@ gulp.task('jquery', function() {
     .pipe(gulp.dest("dist/lib/"));
 });
 
+// TODO: Separate dev/build versions
 gulp.task('vue', function() {
-  return gulp.src("bower_components/vue/dist/vue.js")
+  return gulp.src("bower_components/vue/dist/vue.min.js")
     .pipe(gulp.dest("dist/lib/"));
 });
 
 gulp.task('default', ['serve', 'jquery', 'vue', 'html', 'sass']);
-
-
-// TODO: Separate dev/dist versions
 gulp.task('build', ['html', 'jquery', 'vue', 'sass']);
