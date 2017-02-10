@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="lib/jquery.min.js"></script>
-    <script src="lib/vue.js"></script>
+    <script src="lib/vue.min.js"></script>
   </head>
   <body>
 
@@ -27,27 +27,52 @@
 
 
 
-
-    <script>
-      var main = new Vue({
-        el: '#main',
-        data: {
-          loading: true,
-          articles: [{
-            'headline': "Overskrift",
-            'url': "https://magns.com",
-            'date': "nah"
-          }]
-        }
-      });
-    </script>
-
-
     <script>
       // TODO: Handle leap year and stuff
       var today = new Date();
       var dd = today.getDate();
       var mm = today.getMonth()+1;
+
+      var parseArticles = function(articles) {
+        var results = [];
+
+        for(var i=0; i<articles.length; i++) {
+          var date = articles[i].pub_date.split("T")[0];
+          date = date.split("-");
+
+          // Determine headline size
+          var headline = articles[i].headline.main;
+          var css = "col-33";
+          if(headline.length >= 55) {
+            css = "col-66";
+          }
+          if(headline.length >= 130) {
+            css = "col-100";
+          }
+
+          // But is it today?
+          if(parseInt(date[2]) == parseInt(dd)) {
+            var abstract = articles[i].abstract;
+            results.push({
+              'url': articles[i].web_url,
+              'headline': headline,
+              'date': date,
+              'cls': css,
+              'abstract': abstract
+            });
+          }
+        }
+
+        return results;
+      };
+
+      var main = new Vue({
+        el: '#main',
+        data: {
+          loading: true,
+          articles: []
+        }
+      });
 
       var url = "https://api.nytimes.com/svc/archive/v1/1917/" + mm + ".json";
       url += '?' + $.param({
@@ -57,34 +82,7 @@
         url: url,
         method: 'GET',
       }).done(function(result) {
-        console.log(result);
-        main.articles = [];
-        var articles = result.response.docs;
-        for(var i=0; i<articles.length; i++) {
-          var date = articles[i].pub_date.split("T")[0];
-          date = date.split("-");
-
-          var headline = articles[i].headline.main;
-          var css = "col-33";
-          if(headline.length >= 55) {
-            css = "col-66";
-          }
-          if(headline.length >= 130) {
-            css = "col-100";
-          }
-          if(parseInt(date[2]) == parseInt(dd)) {
-            var abstract = articles[i].abstract;
-            main.articles.push({
-              'url': articles[i].web_url,
-              'headline': headline,
-              'date': date,
-              'cls': css,
-              'abstract': abstract
-            });
-          }
-
-        }
-
+        main.articles = parseArticles(result.response.docs);
         main.loading = false;
       }).fail(function(err) {
         console.log("Failed connecting to NY Times API.");
