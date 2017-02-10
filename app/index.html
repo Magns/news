@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>100 years ago today</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/vue.js"></script>
+  </head>
+  <body>
+
+    <div id="main">
+      <div class="header">
+        <p>Here is what happened on this day one hundred years ago, courtesy of <a href="https://nytimes.com/">NY Times</a>.</p>
+        <p v-if="loading">Loading articles...</p>
+      </div>
+
+      <div class="article-container">
+        <article v-for="article in articles" v-bind:class="article.cls">
+          <a v-bind:href="article.url" class="article-inner">
+            <h2>{{ article.headline }}</h2>
+            <p v-if="article.abstract">{{ article.abstract }}</p>
+          </a>
+        </article>
+      </div>
+    </div>
+
+
+
+
+    <script>
+      var main = new Vue({
+        el: '#main',
+        data: {
+          loading: true,
+          articles: [{
+            'headline': "Overskrift",
+            'url': "https://magns.com",
+            'date': "nah"
+          }]
+        }
+      });
+    </script>
+
+
+    <script>
+      // TODO: Handle leap year and stuff
+      var today = new Date();
+      var dd = today.getDate();
+      var mm = today.getMonth()+1;
+
+      var url = "https://api.nytimes.com/svc/archive/v1/1917/" + mm + ".json";
+      url += '?' + $.param({
+        'api-key': "fe6a3f2451154b289754f167a0d825a5"
+      });
+      $.ajax({
+        url: url,
+        method: 'GET',
+      }).done(function(result) {
+        console.log(result);
+        main.articles = [];
+        var articles = result.response.docs;
+        for(var i=0; i<articles.length; i++) {
+          var date = articles[i].pub_date.split("T")[0];
+          date = date.split("-");
+
+          var headline = articles[i].headline.main;
+          var css = "col-33";
+          if(headline.length >= 55) {
+            css = "col-66";
+          }
+          if(headline.length >= 130) {
+            css = "col-100";
+          }
+          if(parseInt(date[2]) == parseInt(dd)) {
+            var abstract = articles[i].abstract;
+            main.articles.push({
+              'url': articles[i].web_url,
+              'headline': headline,
+              'date': date,
+              'cls': css,
+              'abstract': abstract
+            });
+          }
+
+        }
+
+        main.loading = false;
+      }).fail(function(err) {
+        console.log("Failed connecting to NY Times API.");
+        throw err;
+      });
+    </script>
+  </body>
+</html>
